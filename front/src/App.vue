@@ -4,33 +4,57 @@
   </header>
 
   <main>
-      <form class="search-form">
+      <form class="search-form" @submit.prevent="insertItem">
           <div style="display: flex; flex-direction: row">
-              <input id="text" type="text" style="height: 50px; font-size: 32px">
-              <input type="button"  value="Inserir" style="margin-left: 10px" @click="insertItem()">
+              <input id="text" type="text" style="height: 50px; font-size: 32px" v-model="textValue">
+              <input type="button"  value="Inserir" style="margin-left: 10px" @click="insertItem">
           </div>
       </form>
       <div style="width: 500px; padding: 1px; background-color: grey; margin: 30px 0"></div>
       <div style="display: flex; flex-direction: column">
-          <div v-for="(item, index) in items" class="card-item">
-              <p>{{item}}</p>
-              <input type="button" value="Excluir" @click="removeItem(index)">
+          <div v-for="(item, index) in items" :key="index" class="card-item">
+              <p>{{item.text}}</p>
+              <input type="button" value="Excluir" @click="removeItem(item)">
           </div>
       </div>
   </main>
 </template>
 
 <script setup>
-import {ref} from "vue";
+import {onBeforeMount, ref} from "vue";
+import axios from "axios";
 
 const items = ref([]);
+const textValue = ref("");
+
+onBeforeMount(() => {
+  api.get('text-lists').then((response) => {
+    items.value = response.data;
+  })
+})
+
+
+const api = axios.create({
+    baseURL: "http://localhost:8080/api"
+});
 
 function insertItem() {
-    items.value.push(document.getElementById("text").value);
+    api.post('text-lists', {
+      text: textValue.value
+    }).then((response) => {
+      items.value.push({id: response.data.id, text: response.data.text});
+      textValue.value = "";
+    }).catch((error) => {
+      console.log(error);
+    })
 }
 
 function removeItem(index) {
-    items.value.splice(index, 1);
+    api.delete('text-lists/' + index.id).then(() => {
+      items.value = items.value.filter(item => item.id !== index.id);
+    }).catch((error) => {
+      console.log(error);
+    })
 }
 </script>
 

@@ -39,7 +39,7 @@ RUN php artisan event:clear && php artisan route:clear && php artisan config:cle
 
 EXPOSE 8080
 
-CMD ["/bin/sh", "-c", "php artisan route:list"]
+ENTRYPOINT ["/bin/sh", "-c", "php artisan migrate --force --seed && /usr/bin/supervisord -c /etc/supervisord.conf"]
 
 #ENTRYPOINT ["/bin/sh", "-c" , "php artisan optimize && php artisan migrate --force --seed && php artisan storage:link && /usr/bin/supervisord -c /etc/supervisord.conf"]
 
